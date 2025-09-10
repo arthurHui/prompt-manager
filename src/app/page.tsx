@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -39,61 +39,7 @@ export default function Home() {
   const [totalPrompts, setTotalPrompts] = useState(0);
   const ITEMS_PER_PAGE = 30;
 
-  useEffect(() => {
-    if (isLoaded) {
-      if (!isSignedIn) {
-        router.push('/sign-in');
-        return;
-      }
-      fetchFilteredPrompts();
-      fetchTags();
-      fetchTypes();
-    }
-  }, [isLoaded, isSignedIn, router]);
-
-  // Fetch filtered prompts whenever search/filter criteria change (with debounce for search)
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    
-    // Reset to page 1 when filters change
-    setCurrentPage(1);
-    
-    // Debounce search input
-    const timeoutId = setTimeout(() => {
-      fetchFilteredPrompts(1);
-    }, searchTitle.trim() ? 300 : 0); // 300ms delay for search, immediate for other filters
-    
-    return () => clearTimeout(timeoutId);
-  }, [selectedTags, selectedTypes, searchTitle, isLoaded, isSignedIn]);
-
-  // This effect is no longer needed since we're filtering on the server
-  // useEffect(() => {
-  //   let filtered = prompts;
-  //   // ... filtering logic moved to server
-  //   setFilteredPrompts(filtered);
-  // }, [prompts, selectedTags, selectedTypes, searchTitle]);
-
-  // Handle clicking outside dropdowns to close them
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.type-dropdown')) {
-        setTypeDropdownOpen(false);
-        setTypeSearchTerm('');
-      }
-      if (!target.closest('.tag-dropdown')) {
-        setTagDropdownOpen(false);
-        setTagSearchTerm('');
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const fetchFilteredPrompts = async (page: number = currentPage) => {
+  const fetchFilteredPrompts = useCallback(async (page: number = currentPage) => {
     try {
       setIsLoading(true);
       
@@ -135,14 +81,14 @@ export default function Home() {
       } else {
         setError(result.error || 'Failed to fetch prompts');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch prompts');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchTitle, selectedTypes, selectedTags, ITEMS_PER_PAGE]);
 
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     try {
       const response = await fetch('/api/tags');
       const result = await response.json();
@@ -150,12 +96,12 @@ export default function Home() {
       if (result.success) {
         setAllTags(result.data);
       }
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch tags');
     }
-  };
+  }, []);
 
-  const fetchTypes = async () => {
+  const fetchTypes = useCallback(async () => {
     try {
       // Fetch all prompts without filters to get all available types
       const response = await fetch('/api/prompts');
@@ -165,10 +111,10 @@ export default function Home() {
         const types = Array.from(new Set(result.data.map((prompt: Prompt) => prompt.type))).filter(Boolean);
         setAllTypes(types as string[]);
       }
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch types');
     }
-  };
+  }, []);
 
   const deletePrompt = async (id: string) => {
     if (!confirm('Are you sure you want to delete this prompt?')) return;
@@ -184,39 +130,15 @@ export default function Home() {
       } else {
         alert('Failed to delete prompt');
       }
-    } catch (err) {
+    } catch {
       alert('Failed to delete prompt');
     }
-  };
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
-
-  const toggleType = (type: string) => {
-    setSelectedTypes(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
   };
 
   const clearAllFilters = () => {
     setSelectedTags([]);
     setSelectedTypes([]);
     setSearchTitle('');
-  };
-
-  const clearTagFilters = () => {
-    setSelectedTags([]);
-  };
-
-  const clearTypeFilters = () => {
-    setSelectedTypes([]);
   };
 
   const handlePageChange = (page: number) => {
@@ -247,6 +169,54 @@ export default function Home() {
       toast.error(`Failed to copy ${type}`);
     }
   };
+
+  // Effects for data fetching and event handling
+  useEffect(() => {
+    if (isLoaded) {
+      if (!isSignedIn) {
+        router.push('/sign-in');
+        return;
+      }
+      fetchFilteredPrompts();
+      fetchTags();
+      fetchTypes();
+    }
+  }, [isLoaded, isSignedIn, router, fetchFilteredPrompts, fetchTags, fetchTypes]);
+
+  // Fetch filtered prompts whenever search/filter criteria change (with debounce for search)
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
+    
+    // Debounce search input
+    const timeoutId = setTimeout(() => {
+      fetchFilteredPrompts(1);
+    }, searchTitle.trim() ? 300 : 0); // 300ms delay for search, immediate for other filters
+    
+    return () => clearTimeout(timeoutId);
+  }, [selectedTags, selectedTypes, searchTitle, isLoaded, isSignedIn, fetchFilteredPrompts]);
+
+  // Handle clicking outside dropdowns to close them
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.type-dropdown')) {
+        setTypeDropdownOpen(false);
+        setTypeSearchTerm('');
+      }
+      if (!target.closest('.tag-dropdown')) {
+        setTagDropdownOpen(false);
+        setTagSearchTerm('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   if (!isLoaded || isLoading) {
     return (

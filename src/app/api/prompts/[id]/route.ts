@@ -30,6 +30,7 @@ export async function GET(
     
     return NextResponse.json({ success: true, data: prompt });
   } catch (error) {
+    console.error('Error fetching prompt:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch prompt' },
       { status: 500 }
@@ -105,6 +106,7 @@ export async function DELETE(
     
     return NextResponse.json({ success: true, data: {} });
   } catch (error) {
+    console.error('Error deleting prompt:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete prompt' },
       { status: 500 }

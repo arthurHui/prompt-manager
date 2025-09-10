@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface Prompt {
@@ -19,7 +18,7 @@ interface Prompt {
 }
 
 export default function CombinePrompts() {
-    const { isLoaded, isSignedIn, user } = useUser();
+    const { isLoaded, isSignedIn } = useUser();
     const router = useRouter();
     const [allPrompts, setAllPrompts] = useState<Prompt[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -117,10 +116,28 @@ export default function CombinePrompts() {
         });
     }, [allPrompts]);
 
+    const generateCombinedPrompt = useCallback(() => {
+        const parts = [];
+
+        if (selectedCharacter) {
+            parts.push(selectedCharacter.prompt);
+        }
+
+        if (selectedBackground) {
+            parts.push(selectedBackground.prompt);
+        }
+
+        if (selectedPose) {
+            parts.push(selectedPose.prompt);
+        }
+
+        setCombinedPrompt(parts.join(', '));
+    }, [selectedCharacter, selectedBackground, selectedPose]);
+
     useEffect(() => {
         // Generate combined prompt when selections change
         generateCombinedPrompt();
-    }, [selectedCharacter, selectedBackground, selectedPose]);
+    }, [generateCombinedPrompt]);
 
     const fetchPrompts = async (searchTerm = '', selectedTagsParam: string[] = []) => {
         setSearchLoading(true);
@@ -168,24 +185,6 @@ export default function CombinePrompts() {
         if (e.key === 'Enter') {
             handleSearch();
         }
-    };
-
-    const generateCombinedPrompt = () => {
-        const parts = [];
-
-        if (selectedCharacter) {
-            parts.push(selectedCharacter.prompt);
-        }
-
-        if (selectedBackground) {
-            parts.push(selectedBackground.prompt);
-        }
-
-        if (selectedPose) {
-            parts.push(selectedPose.prompt);
-        }
-
-        setCombinedPrompt(parts.join(', '));
     };
 
     const copyToClipboard = async () => {
