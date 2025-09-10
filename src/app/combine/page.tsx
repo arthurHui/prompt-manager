@@ -411,7 +411,7 @@ export default function CombinePrompts() {
                         <div className="mt-4 flex flex-wrap gap-2">
                             {searchTitle && (
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                    Search: "{searchTitle}"
+                                    Search: &ldquo;{searchTitle}&rdquo;
                                     <button
                                         onClick={() => {
                                             setSearchTitle('');

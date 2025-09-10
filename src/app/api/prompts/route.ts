@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '30');
     
     // Build the MongoDB query
-    let query: any = { userId };
+    const query: Record<string, unknown> = { userId };
     
     // Add search filter for title
     if (search && search.trim()) {
@@ -97,9 +97,10 @@ export async function POST(request: NextRequest) {
     const promptData = { ...body, userId };
     const prompt = await Prompt.create(promptData);
     return NextResponse.json({ success: true, data: prompt }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to create prompt';
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to create prompt' },
+      { success: false, error: message },
       { status: 400 }
     );
   }

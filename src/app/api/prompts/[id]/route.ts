@@ -5,7 +5,7 @@ import Prompt from '@/models/Prompt';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -17,8 +17,9 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     await dbConnect();
-    const prompt = await Prompt.findOne({ _id: params.id, userId });
+    const prompt = await Prompt.findOne({ _id: id, userId });
     
     if (!prompt) {
       return NextResponse.json(
@@ -38,7 +39,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -50,11 +51,12 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     await dbConnect();
     const body = await request.json();
     
     const prompt = await Prompt.findOneAndUpdate(
-      { _id: params.id, userId },
+      { _id: id, userId },
       body,
       { new: true, runValidators: true }
     );
@@ -67,9 +69,10 @@ export async function PUT(
     }
     
     return NextResponse.json({ success: true, data: prompt });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to update prompt';
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update prompt' },
+      { success: false, error: message },
       { status: 400 }
     );
   }
@@ -77,7 +80,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -89,8 +92,9 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     await dbConnect();
-    const prompt = await Prompt.findOneAndDelete({ _id: params.id, userId });
+    const prompt = await Prompt.findOneAndDelete({ _id: id, userId });
     
     if (!prompt) {
       return NextResponse.json(

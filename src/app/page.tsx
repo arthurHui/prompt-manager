@@ -279,7 +279,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Prompt Manager</h1>
-            <p className="text-gray-600 mt-1">Welcome back, {user?.firstName || 'User'}!</p>
+            <p className="text-gray-600 mt-1">Welcome back, {user?.firstName || `User`}!</p>
           </div>
           <div className="flex items-center gap-4">
             <Link
@@ -493,7 +493,7 @@ export default function Home() {
               <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
                 <div className="text-sm text-blue-800">
                   <span className="font-medium">Active filters:</span>
-                  {searchTitle.trim() && <span className="ml-2">Title: "{searchTitle}"</span>}
+                  {searchTitle.trim() && <span className="ml-2">Title: &ldquo;{searchTitle}&rdquo;</span>}
                   {selectedTypes.length > 0 && <span className="ml-2">Types: {selectedTypes.length}</span>}
                   {selectedTags.length > 0 && <span className="ml-2">Tags: {selectedTags.length}</span>}
                   <span className="ml-2">• Page {currentPage} of {totalPages} • Showing {filteredPrompts.length} of {totalPrompts} prompts</span>

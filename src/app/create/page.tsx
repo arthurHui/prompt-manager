@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { CldUploadWidget } from 'next-cloudinary';
+import Image from 'next/image';
 
 const PROMPT_TYPES = ['Character', 'Background', 'Pose'];
 
@@ -119,6 +120,7 @@ export default function CreatePrompt() {
                 setError(result.error || `Failed to ${isEditMode ? 'update' : 'create'} prompt`);
             }
         } catch (err) {
+            console.error('Error submitting prompt:', err);
             setError(`Failed to ${isEditMode ? 'update' : 'create'} prompt. Please try again.`);
         } finally {
             setIsLoading(false);
@@ -320,11 +322,12 @@ export default function CreatePrompt() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Image Preview
                                 </label>
-                                <div className="border border-gray-300 rounded-md overflow-hidden">
-                                    <img
+                                <div className="border border-gray-300 rounded-md overflow-hidden relative h-48">
+                                    <Image
                                         src={imagePreview}
                                         alt="Preview"
-                                        className="w-full h-48 object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                 </div>
                             </div>
@@ -387,7 +390,7 @@ export default function CreatePrompt() {
                                                     onClick={() => addTag(tagInput)}
                                                     className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none text-blue-600"
                                                 >
-                                                    Create "{tagInput.trim()}"
+                                                    Create &ldquo;{tagInput.trim()}&rdquo;
                                                 </button>
                                             ) : null}
                                         </div>
