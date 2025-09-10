@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { CldUploadWidget } from 'next-cloudinary';
@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 const PROMPT_TYPES = ['Character', 'Background', 'Pose'];
 
-export default function CreatePrompt() {
+function CreatePromptContent() {
     const { isLoaded, isSignedIn } = useUser();
     const searchParams = useSearchParams();
     const editId = searchParams.get('edit');
@@ -423,5 +423,17 @@ export default function CreatePrompt() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CreatePrompt() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-lg">Loading...</div>
+            </div>
+        }>
+            <CreatePromptContent />
+        </Suspense>
     );
 }
